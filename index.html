@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Onko Pertsi?</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .container {
+            text-align: center;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        #friday-text {
+            font-size: 6rem;
+            font-weight: bold;
+            margin-bottom: 2rem;
+            transition: font-size 20s ease-in-out;
+        }
+
+        #song-playing {
+            font-size: 1.5rem;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        #play-friday {
+            font-size: 1.2rem;
+            padding: 0.8rem 1.5rem;
+            margin-top: 2rem;
+            cursor: pointer;
+            background-color: #1DB954;
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            opacity: 1;
+            transform: translateY(20px);
+        }
+
+        #play-friday:hover {
+            background-color: #1ed760;
+            box-shadow: 0 4px 12px rgba(29, 185, 84, 0.5);
+        }
+
+        #play-friday:active {
+            transform: translateY(22px);
+        }
+
+        #play-friday.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .pulse {
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .friday-animation {
+            animation: crazyFriday 0.5s infinite;
+        }
+
+        @keyframes crazyFriday {
+            0% {
+                transform: rotate(0deg) scale(1);
+            }
+
+            25% {
+                transform: rotate(5deg) scale(1.1);
+            }
+
+            50% {
+                transform: rotate(0deg) scale(1);
+            }
+
+            75% {
+                transform: rotate(-5deg) scale(1.1);
+            }
+
+            100% {
+                transform: rotate(0deg) scale(1);
+            }
+        }
+
+        .grow-animation {
+            animation: growText 20s ease-in-out infinite alternate;
+        }
+
+        @keyframes growText {
+            0% {
+                font-size: 1rem;
+            }
+
+            100% {
+                font-size: 20vw;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div id="friday-text"></div>
+        <div id="song-playing">🎵 "Pertsi" soi 🎵</div>
+        <button id="play-friday" style="display: none;">▶ Soita Pertsi</button>
+    </div>
+
+    <audio id="friday" loop>
+        <source src="pertsi.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <script>
+
+        const audioElement = document.getElementById('friday');
+        function updateFridayStatus() {
+            const today = new Date();
+            const isFriday = today.getDay() === 0;
+            const fridayText = document.getElementById('friday-text');
+            const songPlaying = document.getElementById('song-playing');
+
+            if (isFriday) {
+                fridayText.textContent = "Jummi jammi se olis Pertsi!";
+                fridayText.classList.add('friday-animation');
+                fridayText.classList.remove('grow-animation');
+                songPlaying.style.opacity = '1';
+                songPlaying.classList.add('pulse');
+                document.getElementById("play-friday").style.display = "block";
+            } else {
+                fridayText.textContent = "Ei.";
+                fridayText.classList.remove('friday-animation');
+                fridayText.classList.add('grow-animation');
+                songPlaying.style.opacity = '0';
+                songPlaying.classList.remove('pulse');
+            }
+        }
+
+        function playPertsi() {
+            audioElement.play();
+        }
+        document.addEventListener("DOMContentLoaded", function () {
+            updateFridayStatus();
+            setInterval(updateFridayStatus, 60000); // Update every minute
+
+            // Wait for user interaction before allowing audio to play
+            document.addEventListener("click", function () {
+                playPertsi();
+            }, {once: true}); // Runs only once
+            document.getElementById("play-friday", function () {
+                this.style.display = "none"; // Hide button after click
+            });
+        });
+
+    </script>
+</body>
+
+</html>
