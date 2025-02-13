@@ -6,84 +6,134 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Onko Pertsi?</title>
     <style>
+        /* Previous styles remain the same until container */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Arial', sans-serif;
             background-color: #121212;
             color: #ffffff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
             overflow: hidden;
         }
 
         .container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 1rem;
             text-align: center;
-            width: 100%;
         }
 
-        h1 {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-        }
-
+        /* Previous styles for other elements remain the same */
         #friday-text {
-            font-size: 6rem;
+            font-size: clamp(2rem, 10vw, 6rem);
             font-weight: bold;
             margin-bottom: 2rem;
-            transition: font-size 20s ease-in-out;
+            word-wrap: break-word;
+            max-width: 100%;
+            z-index: 1;
+            transition: transform 0.3s ease;
         }
 
         #song-playing {
-            font-size: 1.5rem;
+            font-size: clamp(1rem, 4vw, 1.5rem);
             opacity: 0;
             transition: opacity 0.5s ease-in-out;
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2;
+            width: 90%;
+            max-width: 300px;
         }
 
         #play-friday {
-            font-size: 1.2rem;
-            padding: 0.8rem 1.5rem;
-            margin-top: 2rem;
+            font-size: clamp(1rem, 4vw, 1.2rem);
+            padding: clamp(0.5rem, 2vw, 0.8rem) clamp(1rem, 4vw, 1.5rem);
             cursor: pointer;
             background-color: #1DB954;
             color: #fff;
             border: none;
             border-radius: 50px;
             transition: all 0.3s ease;
-            opacity: 1;
-            transform: translateY(20px);
+            margin-top: 1rem;
+            z-index: 3;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
 
         #play-friday:hover {
             background-color: #1ed760;
             box-shadow: 0 4px 12px rgba(29, 185, 84, 0.5);
+            transform: scale(1.05);
         }
 
         #play-friday:active {
-            transform: translateY(22px);
+            transform: scale(0.95);
         }
 
-        #play-friday.visible {
-            opacity: 1;
-            transform: translateY(0);
+        /* Rain container styles */
+        #rain-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
         }
 
+        .music-note {
+            position: fixed;
+            top: -20px;
+            font-size: 20px;
+            animation: fall linear infinite;
+            opacity: 0;
+            will-change: transform;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(-20px) rotate(0deg);
+                opacity: 1;
+            }
+
+            90% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Previous animation styles remain the same */
         .pulse {
             animation: pulse 1s infinite;
         }
 
         @keyframes pulse {
             0% {
-                transform: scale(1);
+                transform: translateX(-50%) scale(1);
             }
 
             50% {
-                transform: scale(1.1);
+                transform: translateX(-50%) scale(1.1);
             }
 
             100% {
-                transform: scale(1);
+                transform: translateX(-50%) scale(1);
             }
         }
 
@@ -114,74 +164,196 @@
         }
 
         .grow-animation {
-            animation: growText 20s ease-in-out infinite alternate;
+            animation: growText 30s linear infinite;
         }
 
         @keyframes growText {
-            0% {
-                font-size: 1rem;
+            from {
+                font-size: clamp(1rem, 5vw, 2rem);
             }
 
-            100% {
-                font-size: 20vw;
+            to {
+                font-size: clamp(4rem, 90vh, 90vh);
             }
+        }
+
+        /* Mobile-specific adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            #friday-text {
+                margin-bottom: 1.5rem;
+            }
+
+            #song-playing {
+                bottom: 1rem;
+            }
+
+            #play-friday {
+                margin-top: 0.75rem;
+            }
+        }
+
+        /* Prevent text selection */
+        .no-select {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
     </style>
 </head>
 
 <body>
+    <div id="rain-container"></div>
     <div class="container">
-        <div id="friday-text"></div>
-        <div id="song-playing">🎵 "Pertsi" soi 🎵</div>
-        <button id="play-friday" style="display: none;">▶ Soita Pertsi</button>
+        <div id="friday-text" class="no-select"></div>
+        <button id="play-friday" style="display: none;" class="no-select">▶ Soita Pertsi</button>
+        <div id="song-playing" class="no-select">🎵 Pertsi soi 🎵</div>
     </div>
 
     <audio id="friday" loop>
-        <source src="pertsi.mp3" type="audio/mpeg">
+        <source src="audio/pertsi.mp3" type="audio/mpeg">
         Your browser does not support the audio element.
     </audio>
 
     <script>
-
+        // Previous variables remain the same
         const audioElement = document.getElementById('friday');
-        function updateFridayStatus() {
-            const today = new Date();
-            const isFriday = today.getDay() === 0;
-            const fridayText = document.getElementById('friday-text');
-            const songPlaying = document.getElementById('song-playing');
+        const songPlaying = document.getElementById('song-playing');
+        const playButton = document.getElementById('play-friday');
+        const fridayText = document.getElementById('friday-text');
+        const rainContainer = document.getElementById('rain-container');
+        let isPlaying = false;
+        let rainInterval;
 
+        // Music note characters
+        const musicNotes = ['🎵', '♪', '♫', '🎶'];
+
+        function createMusicNote() {
+            const note = document.createElement('div');
+            note.className = 'music-note';
+            note.textContent = musicNotes[Math.floor(Math.random() * musicNotes.length)];
+            note.style.left = Math.random() * 100 + 'vw';
+            note.style.animationDuration = (Math.random() * 3 + 2) + 's'; // Between 2-5s
+            note.style.transform = `rotate(${Math.random() * 360}deg)`;
+
+            rainContainer.appendChild(note);
+
+            // Remove note after animation
+            note.addEventListener('animationend', () => {
+                note.remove();
+            });
+        }
+
+        function startRain() {
+            rainInterval = setInterval(createMusicNote, 150); // Create note every 150ms
+        }
+
+        function stopRain() {
+            clearInterval(rainInterval);
+            // Remove all existing notes
+            while (rainContainer.firstChild) {
+                rainContainer.firstChild.remove();
+            }
+        }
+
+        function updateFridayText(isFriday) {
             if (isFriday) {
-                fridayText.textContent = "Jummi jammi se olis Pertsi!";
-                fridayText.classList.add('friday-animation');
+                fridayText.textContent = "Jummi jammi, se olis Pertsi!";
+                if (isPlaying) {
+                    fridayText.classList.add('friday-animation');
+                } else {
+                    fridayText.classList.remove('friday-animation');
+                }
                 fridayText.classList.remove('grow-animation');
-                songPlaying.style.opacity = '1';
-                songPlaying.classList.add('pulse');
-                document.getElementById("play-friday").style.display = "block";
+                playButton.style.display = "block";
             } else {
                 fridayText.textContent = "Ei.";
                 fridayText.classList.remove('friday-animation');
                 fridayText.classList.add('grow-animation');
+                playButton.style.display = "none";
                 songPlaying.style.opacity = '0';
-                songPlaying.classList.remove('pulse');
+                isPlaying = false;
+                audioElement.pause();
+                stopRain();
             }
         }
 
-        function playPertsi() {
-            audioElement.play();
+        function updateFridayStatus() {
+            const today = new Date();
+            const isFriday = today.getDay() === 5;
+            updateFridayText(isFriday);
         }
+
+        function updateSongPlayingVisibility() {
+            songPlaying.style.opacity = isPlaying ? '1' : '0';
+            songPlaying.classList.toggle('pulse', isPlaying);
+            const today = new Date();
+            const isFriday = today.getDay() === 5;
+            updateFridayText(isFriday);
+        }
+
+        function playPertsi() {
+            isPlaying = true;
+            audioElement.play().then(() => {
+                updateSongPlayingVisibility();
+                playButton.textContent = "⏸ Lopeta Pertsi";
+                startRain();
+            }).catch(error => {
+                console.error('Error playing audio:', error);
+                isPlaying = false;
+                updateSongPlayingVisibility();
+            });
+        }
+
+        function pausePertsi() {
+            isPlaying = false;
+            audioElement.pause();
+            updateSongPlayingVisibility();
+            playButton.textContent = "▶ Soita Pertsi";
+            stopRain();
+        }
+
+        // Previous functions remain the same
+        function unlockAudioContext() {
+            if (audioElement.paused) {
+                const silentAudio = new Audio("data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//OEAAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAAEAAABIADAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV6urq6urq6urq6urq6urq6urq6urq6urq6v////////////////////////////////8AAAAATGF2YzU4LjU0AAAAAAAAAAAAAAAAJAAAAAAAAAAAASDs90hvAAAAAAAAAAAAAAAAAAAA//MUZAAAAAGkAAAAAAAAA0gAAAAATEFN//MUZAMAAAGkAAAAAAAAA0gAAAAARTMu//MUZAYAAAGkAAAAAAAAA0gAAAAAOTku//MUZAkAAAGkAAAAAAAAA0gAAAAANVVV");
+                silentAudio.play().catch(() => { });
+            }
+        }
+
         document.addEventListener("DOMContentLoaded", function () {
             updateFridayStatus();
-            setInterval(updateFridayStatus, 60000); // Update every minute
+            setInterval(updateFridayStatus, 60000);
 
-            // Wait for user interaction before allowing audio to play
-            document.addEventListener("click", function () {
-                playPertsi();
-            }, {once: true}); // Runs only once
-            document.getElementById("play-friday", function () {
-                this.style.display = "none"; // Hide button after click
+            playButton.addEventListener("click", function () {
+                unlockAudioContext();
+                if (isPlaying) {
+                    pausePertsi();
+                } else {
+                    playPertsi();
+                }
             });
-        });
 
+            audioElement.addEventListener('ended', function () {
+                isPlaying = false;
+                updateSongPlayingVisibility();
+                stopRain();
+            });
+
+            document.addEventListener('visibilitychange', function () {
+                if (document.hidden && isPlaying) {
+                    pausePertsi();
+                }
+            });
+
+            document.addEventListener('touchend', function (event) {
+                event.preventDefault();
+            }, false);
+        });
     </script>
 </body>
 
