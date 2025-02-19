@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Onko Pertsi?</title>
     <style>
-        /* Previous styles remain the same until container */
         * {
             margin: 0;
             padding: 0;
@@ -31,9 +30,9 @@
             min-height: 100vh;
             padding: 1rem;
             text-align: center;
+            overflow: hidden;
         }
 
-        /* Previous styles for other elements remain the same */
         #friday-text {
             font-size: clamp(2rem, 10vw, 6rem);
             font-weight: bold;
@@ -42,6 +41,8 @@
             max-width: 100%;
             z-index: 1;
             transition: transform 0.3s ease;
+            white-space: nowrap;
+            overflow: visible;
         }
 
         #song-playing {
@@ -118,7 +119,6 @@
             }
         }
 
-        /* Previous animation styles remain the same */
         .pulse {
             animation: pulse 1s infinite;
         }
@@ -173,11 +173,10 @@
             }
 
             to {
-                font-size: clamp(4rem, 90vh, 90vh);
+                font-size: clamp(4rem, 150vh, 150vh);
             }
         }
 
-        /* Mobile-specific adjustments */
         @media (max-width: 768px) {
             .container {
                 padding: 1rem;
@@ -196,7 +195,6 @@
             }
         }
 
-        /* Prevent text selection */
         .no-select {
             -webkit-user-select: none;
             -moz-user-select: none;
@@ -214,13 +212,12 @@
         <div id="song-playing" class="no-select">🎵 Pertsi soi 🎵</div>
     </div>
 
-    <audio id="friday" loop>
+    <audio id="friday" loop preload="auto" playsinline>
         <source src="audio/pertsi.mp3" type="audio/mpeg">
         Your browser does not support the audio element.
     </audio>
 
     <script>
-        // Previous variables remain the same
         const audioElement = document.getElementById('friday');
         const songPlaying = document.getElementById('song-playing');
         const playButton = document.getElementById('play-friday');
@@ -229,7 +226,6 @@
         let isPlaying = false;
         let rainInterval;
 
-        // Music note characters
         const musicNotes = ['🎵', '♪', '♫', '🎶'];
 
         function createMusicNote() {
@@ -242,7 +238,6 @@
 
             rainContainer.appendChild(note);
 
-            // Remove note after animation
             note.addEventListener('animationend', () => {
                 note.remove();
             });
@@ -284,7 +279,7 @@
 
         function updateFridayStatus() {
             const today = new Date();
-            const isFriday = today.getDay() === 5;
+            const isFriday = today.getDay() === 3;
             updateFridayText(isFriday);
         }
 
@@ -292,21 +287,28 @@
             songPlaying.style.opacity = isPlaying ? '1' : '0';
             songPlaying.classList.toggle('pulse', isPlaying);
             const today = new Date();
-            const isFriday = today.getDay() === 5;
+            const isFriday = today.getDay() === 3;
             updateFridayText(isFriday);
         }
 
-        function playPertsi() {
-            isPlaying = true;
-            audioElement.play().then(() => {
-                updateSongPlayingVisibility();
-                playButton.textContent = "⏸ Lopeta Pertsi";
-                startRain();
-            }).catch(error => {
-                console.error('Error playing audio:', error);
-                isPlaying = false;
-                updateSongPlayingVisibility();
-            });
+
+        async function playPertsi() {
+            try {
+                const playPromise = audioElement.play();
+                if (playPromise !== undefined) {
+                    await playPromise;
+                    isPlaying = true;
+                    updateSongPlayingVisibility();
+                    playButton.textContent = "⏸ Lopeta Pertsi";
+                    startRain();
+                }
+            } catch (e) {
+                console.error('Error in playPertsi:', e);
+                playButton.textContent = "⚠️ Virhe - Yritä uudelleen";
+                setTimeout(() => {
+                    playButton.textContent = "▶ Soita Pertsi";
+                }, 2000);
+            }
         }
 
         function pausePertsi() {
@@ -317,42 +319,24 @@
             stopRain();
         }
 
-        // Previous functions remain the same
-        function unlockAudioContext() {
-            if (audioElement.paused) {
-                const silentAudio = new Audio("data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//OEAAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAAEAAABIADAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV6urq6urq6urq6urq6urq6urq6urq6urq6v////////////////////////////////8AAAAATGF2YzU4LjU0AAAAAAAAAAAAAAAAJAAAAAAAAAAAASDs90hvAAAAAAAAAAAAAAAAAAAA//MUZAAAAAGkAAAAAAAAA0gAAAAATEFN//MUZAMAAAGkAAAAAAAAA0gAAAAARTMu//MUZAYAAAGkAAAAAAAAA0gAAAAAOTku//MUZAkAAAGkAAAAAAAAA0gAAAAANVVV");
-                silentAudio.play().catch(() => { });
-            }
-        }
-
         document.addEventListener("DOMContentLoaded", function () {
             updateFridayStatus();
             setInterval(updateFridayStatus, 60000);
 
-            playButton.addEventListener("click", function () {
-                unlockAudioContext();
+            playButton.addEventListener("click", function (event) {
+                event.preventDefault();
                 if (isPlaying) {
                     pausePertsi();
                 } else {
+                    audioElement.load();
                     playPertsi();
                 }
             });
-
-            audioElement.addEventListener('ended', function () {
-                isPlaying = false;
-                updateSongPlayingVisibility();
-                stopRain();
-            });
-
             document.addEventListener('visibilitychange', function () {
                 if (document.hidden && isPlaying) {
                     pausePertsi();
                 }
             });
-
-            document.addEventListener('touchend', function (event) {
-                event.preventDefault();
-            }, false);
         });
     </script>
 </body>
