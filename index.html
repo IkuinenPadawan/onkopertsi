@@ -45,6 +45,8 @@
             overflow: visible;
         }
 
+
+
         #song-playing {
             font-size: clamp(1rem, 4vw, 1.5rem);
             opacity: 0;
@@ -258,6 +260,7 @@
         function updateFridayText(isFriday) {
             if (isFriday) {
                 fridayText.textContent = "Jummi jammi, se olis Pertsi!";
+                fridayText.style.whiteSpace = "normal";
                 if (isPlaying) {
                     fridayText.classList.add('friday-animation');
                 } else {
@@ -279,7 +282,7 @@
 
         function updateFridayStatus() {
             const today = new Date();
-            const isFriday = today.getDay() === 3;
+            const isFriday = today.getDay() === 5;
             updateFridayText(isFriday);
         }
 
@@ -287,7 +290,7 @@
             songPlaying.style.opacity = isPlaying ? '1' : '0';
             songPlaying.classList.toggle('pulse', isPlaying);
             const today = new Date();
-            const isFriday = today.getDay() === 3;
+            const isFriday = today.getDay() === 5;
             updateFridayText(isFriday);
         }
 
