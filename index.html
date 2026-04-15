@@ -166,17 +166,7 @@
         }
 
         .grow-animation {
-            animation: growText 30s linear infinite;
-        }
-
-        @keyframes growText {
-            from {
-                font-size: clamp(1rem, 5vw, 2rem);
-            }
-
-            to {
-                font-size: clamp(4rem, 150vh, 150vh);
-            }
+            /* growth handled by JS */
         }
 
         @media (max-width: 768px) {
@@ -227,8 +217,37 @@
         const rainContainer = document.getElementById('rain-container');
         let isPlaying = false;
         let rainInterval;
+        let growRafId = null;
+        let growSize = 2; // vw units
 
         const musicNotes = ['🎵', '♪', '♫', '🎶'];
+
+        function startSlowGrow() {
+            if (growRafId) return; // already growing, don't restart
+            fridayText.style.position = 'fixed';
+            fridayText.style.top = '50%';
+            fridayText.style.left = '50%';
+            fridayText.style.transform = 'translate(-50%, -50%)';
+            function step() {
+                growSize += 0.008; // ~0.48 vw per second at 60fps — very slow
+                fridayText.style.fontSize = growSize + 'vw';
+                growRafId = requestAnimationFrame(step);
+            }
+            growRafId = requestAnimationFrame(step);
+        }
+
+        function stopGrow() {
+            if (growRafId) {
+                cancelAnimationFrame(growRafId);
+                growRafId = null;
+            }
+            growSize = 2;
+            fridayText.style.fontSize = '';
+            fridayText.style.position = '';
+            fridayText.style.top = '';
+            fridayText.style.left = '';
+            fridayText.style.transform = '';
+        }
 
         function createMusicNote() {
             const note = document.createElement('div');
@@ -259,6 +278,7 @@
 
         function updateFridayText(isFriday) {
             if (isFriday) {
+                stopGrow();
                 fridayText.textContent = "Jummi jammi, se olis Pertsi!";
                 fridayText.style.whiteSpace = "normal";
                 if (isPlaying) {
@@ -277,6 +297,7 @@
                 isPlaying = false;
                 audioElement.pause();
                 stopRain();
+                startSlowGrow();
             }
         }
 
